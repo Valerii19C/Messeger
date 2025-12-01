@@ -26,12 +26,10 @@ class NewsActivity : AppCompatActivity() {
         chatsIcon.setOnClickListener {
             val intent = Intent(this, ChatsActivity::class.java)
             startActivity(intent)
-            finish() // Закрываем текущую активити
         }
         userIcon.setOnClickListener {
             val intent = Intent(this, Profile::class.java)
             startActivity(intent)
-            finish()
         }
     }
 }
