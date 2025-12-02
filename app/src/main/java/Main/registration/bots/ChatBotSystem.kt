@@ -1,11 +1,5 @@
 package Main.registration.bots
 
-// Класс для хранения данных о боте
-data class Bot(
-    val name: String,
-    val responses: Map<String, String> // Словарь "фраза" -> "ответ"
-)
-
 // Объект-синглтон для управления всеми ботами. Доступен из любой части программы.
 object ChatBotSystem {
 

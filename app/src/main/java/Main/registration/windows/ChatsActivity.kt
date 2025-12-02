@@ -2,12 +2,10 @@ package Main.registration.windows
 
 import Main.registration.Chats.InChats
 import Main.registration.User.Profile
-import Main.registration.windows.BotLIstActivity // Исправлено
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
 import android.widget.LinearLayout
-import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.messenger.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
@@ -46,8 +44,9 @@ class ChatsActivity : AppCompatActivity() {
             startActivity(intent)
         }
         
+        // Обработчик для кнопки "Добавить чат"
         addChatButton?.setOnClickListener {
-            val intent = Intent(this, BotLIstActivity::class.java) // Исправлено
+            val intent = Intent(this, BotListActivity::class.java)
             startActivity(intent)
         }
     }
