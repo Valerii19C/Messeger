@@ -2,6 +2,7 @@ package Main.registration.windows
 
 import Main.registration.Chats.InChats
 import Main.registration.User.Profile
+import Main.registration.windows.BotLIstActivity // Исправлено
 import android.content.Intent
 import android.os.Bundle
 import android.widget.ImageView
@@ -9,6 +10,7 @@ import android.widget.LinearLayout
 import android.widget.Toast
 import androidx.appcompat.app.AppCompatActivity
 import com.example.messenger.R
+import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ChatsActivity : AppCompatActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -18,15 +20,16 @@ class ChatsActivity : AppCompatActivity() {
         // Находим контейнер
         val contentContainer = findViewById<LinearLayout>(R.id.content_container)
 
-        // Загружаем макет чатов
-        layoutInflater.inflate(R.layout.chats_makets, contentContainer, true)
+        // Загружаем макет чатов и получаем доступ к его view
+        val chatsView = layoutInflater.inflate(R.layout.chats_makets, contentContainer, true)
         
         // Настройка навигации в меню
         val userIcon = findViewById<ImageView>(R.id.user)
         val newsIcon = findViewById<ImageView>(R.id.news)
         
-        // Находим кликабельный элемент чата в списке, но ищем его внутри контейнера!
-        val chatItem = contentContainer.findViewById<LinearLayout>(R.id.chat_item_root)
+        // Находим элементы внутри загруженного макета chatsView
+        val chatItem = chatsView.findViewById<LinearLayout>(R.id.chat_item_root)
+        val addChatButton = chatsView.findViewById<FloatingActionButton>(R.id.add_chat_button)
 
         newsIcon.setOnClickListener {
             val intent = Intent(this, NewsActivity::class.java)
@@ -38,10 +41,13 @@ class ChatsActivity : AppCompatActivity() {
             startActivity(intent)
         }
         
-        // Добавляем обработчик нажатия для элемента чата
-        // Проверяем, что chatItem не null, чтобы избежать крэша
         chatItem?.setOnClickListener {
             val intent = Intent(this, InChats::class.java)
+            startActivity(intent)
+        }
+        
+        addChatButton?.setOnClickListener {
+            val intent = Intent(this, BotLIstActivity::class.java) // Исправлено
             startActivity(intent)
         }
     }

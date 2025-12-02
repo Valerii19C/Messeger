@@ -1,66 +1,85 @@
 <?xml version="1.0" encoding="utf-8"?>
-<ScrollView xmlns:android="http://schemas.android.com/apk/res/android"
+<androidx.constraintlayout.widget.ConstraintLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent">
 
-    <LinearLayout
-        android:id="@+id/chats_container"
+    <ScrollView
         android:layout_width="match_parent"
-        android:layout_height="wrap_content"
-        android:orientation="vertical">
+        android:layout_height="match_parent"
+        android:clipToPadding="false"
+        android:paddingBottom="80dp">
 
-        <!-- Начало элемента чата -->
         <LinearLayout
-            android:id="@+id/chat_item_root" 
+            android:id="@+id/chats_container"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:orientation="horizontal"
-            android:padding="16dp"
-            android:gravity="center_vertical"
-            android:clickable="true"
-            android:focusable="true"
-            android:background="?android:attr/selectableItemBackground">
+            android:orientation="vertical">
 
-            <ImageView
-                android:id="@+id/chat_avatar"
-                android:layout_width="56dp"
-                android:layout_height="56dp"
-                android:src="@mipmap/ic_launcher_round"
-                android:contentDescription="Аватар пользователя" />
-
+            <!-- Начало элемента чата -->
             <LinearLayout
-                android:layout_width="0dp"
+                android:id="@+id/chat_item_root"
+                android:layout_width="match_parent"
                 android:layout_height="wrap_content"
-                android:layout_weight="1"
-                android:orientation="vertical"
-                android:layout_marginStart="16dp">
+                android:background="?android:attr/selectableItemBackground"
+                android:clickable="true"
+                android:focusable="true"
+                android:gravity="center_vertical"
+                android:orientation="horizontal"
+                android:padding="16dp">
 
-                <TextView
-                    android:id="@+id/chat_username"
-                    android:layout_width="wrap_content"
-                    android:layout_height="wrap_content"
-                    android:text="Имя пользователя"
-                    android:textStyle="bold"
-                    android:textSize="18sp"
-                    android:textColor="?android:attr/textColorPrimary" />
+                <ImageView
+                    android:id="@+id/chat_avatar"
+                    android:layout_width="56dp"
+                    android:layout_height="56dp"
+                    android:contentDescription="Аватар пользователя"
+                    android:src="@mipmap/ic_launcher_round" />
 
-                <TextView
-                    android:id="@+id/chat_last_message"
-                    android:layout_width="wrap_content"
+                <LinearLayout
+                    android:layout_width="0dp"
                     android:layout_height="wrap_content"
-                    android:text="Это последнее сообщение в этом чате..."
-                    android:textSize="16sp"
-                    android:textColor="?android:attr/textColorSecondary"/>
+                    android:layout_marginStart="16dp"
+                    android:layout_weight="1"
+                    android:orientation="vertical">
+
+                    <TextView
+                        android:id="@+id/chat_username"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Имя пользователя"
+                        android:textColor="?android:attr/textColorPrimary"
+                        android:textSize="18sp"
+                        android:textStyle="bold" />
+
+                    <TextView
+                        android:id="@+id/chat_last_message"
+                        android:layout_width="wrap_content"
+                        android:layout_height="wrap_content"
+                        android:text="Это последнее сообщение в этом чате..."
+                        android:textColor="?android:attr/textColorSecondary"
+                        android:textSize="16sp" />
+                </LinearLayout>
             </LinearLayout>
+            <!-- Конец элемента чата -->
+
+            <!-- Разделитель -->
+            <View
+                android:layout_width="match_parent"
+                android:layout_height="1dp"
+                android:layout_marginStart="88dp"
+                android:background="?android:attr/listDivider" />
+
         </LinearLayout>
-        <!-- Конец элемента чата -->
+    </ScrollView>
 
-        <!-- Разделитель -->
-        <View
-            android:layout_width="match_parent"
-            android:layout_height="1dp"
-            android:background="?android:attr/listDivider"
-            android:layout_marginStart="88dp"/>
+    <com.google.android.material.floatingactionbutton.FloatingActionButton
+        android:id="@+id/add_chat_button"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:layout_margin="16dp"
+        android:contentDescription="Добавить новый чат"
+        app:srcCompat="@android:drawable/ic_input_add"
+        app:layout_constraintBottom_toBottomOf="parent"
+        app:layout_constraintEnd_toEndOf="parent" />
 
-    </LinearLayout>
-</ScrollView>
+</androidx.constraintlayout.widget.ConstraintLayout>
