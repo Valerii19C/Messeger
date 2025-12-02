@@ -4,6 +4,8 @@ import Main.registration.bots.BotListAdapter
 import Main.registration.bots.ChatBotSystem
 import Main.registration.massages.ChatRepository
 import android.os.Bundle
+import Main.registration.bots.Bot
+import android.content.Intent
 import android.widget.ImageButton
 import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
@@ -35,8 +37,12 @@ class BotListActivity : AppCompatActivity() {
 
         // 3. Создаем и настраиваем адаптер
         val adapter = BotListAdapter(ChatBotSystem.allBots) { bot ->
-            // При нажатии на бота - создаем чат и закрываем экран
+            // При нажатии на бота - создаем чат и переходим на экран чатов
             ChatRepository.getOrCreateChatSession(this, bot.name)
+            val intent = Intent(this, ChatsActivity::class.java)
+            intent.putExtra("selected_bot_name", bot.name)
+            intent.addFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP or Intent.FLAG_ACTIVITY_SINGLE_TOP)
+            startActivity(intent)
             finish()
         }
 
