@@ -28,7 +28,7 @@
             android:exported="true"/>
         <activity android:name="Main.registration.User.Profile"
             android:exported="true"/>
-        <activity android:name="Main.registration.Chats.InChats"
+        <activity android:name="Main.registration.windows.InChats"
             android:exported="true"/>
         <activity android:name="Main.registration.windows.BotListActivity"
             android:exported="true"/>
