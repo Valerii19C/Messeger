@@ -4,9 +4,9 @@ import Main.registration.bots.Bot
 import Main.registration.bots.ChatBotSystem
 import Main.registration.massages.ChatMessage
 import Main.registration.massages.ChatRepository
+import android.app.AlertDialog
 import android.os.Bundle
 import android.view.Gravity
-import android.widget.Button
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.LinearLayout
@@ -23,10 +23,12 @@ import com.example.messenger.R
 class InChats : AppCompatActivity() {
     private lateinit var messagesContainer: LinearLayout
     private lateinit var messageEditText: EditText
-    private lateinit var sendButton: Button
+    private lateinit var sendButton: ImageButton
     private lateinit var backButton: ImageButton
     private lateinit var botNameTextView: TextView
     private lateinit var messagesScrollView: ScrollView
+    private lateinit var attachFileButton: ImageButton
+    private lateinit var cameraButton: ImageButton
     private var selectedBot: Bot? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
@@ -40,6 +42,8 @@ class InChats : AppCompatActivity() {
         backButton = findViewById(R.id.back_button)
         botNameTextView = findViewById(R.id.bot_name_text_view)
         messagesScrollView = findViewById(R.id.messages_scroll_view)
+        attachFileButton = findViewById(R.id.attach_file_button)
+        cameraButton = findViewById(R.id.camera_button)
 
         val botName = intent.getStringExtra("chat_name")
         if (botName != null) {
@@ -78,6 +82,27 @@ class InChats : AppCompatActivity() {
                 }
             }
         }
+
+        attachFileButton.setOnClickListener {
+            showAttachFileDialog()
+        }
+
+        cameraButton.setOnClickListener {
+            Toast.makeText(this, "Камера", Toast.LENGTH_SHORT).show()
+        }
+    }
+
+    private fun showAttachFileDialog() {
+        val options = arrayOf("Прикрепить файл", "Отправить изображение")
+        AlertDialog.Builder(this)
+            .setTitle("Выберите действие")
+            .setItems(options) { dialog, which ->
+                when (which) {
+                    0 -> Toast.makeText(this, "Прикрепить файл", Toast.LENGTH_SHORT).show()
+                    1 -> Toast.makeText(this, "Отправить изображение", Toast.LENGTH_SHORT).show()
+                }
+            }
+            .show()
     }
 
     private fun hideSystemUI() {

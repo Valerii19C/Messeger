@@ -85,6 +85,22 @@
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent">
 
+        <ImageButton
+            android:id="@+id/attach_file_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@drawable/baseline_attach_file_24"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Прикрепить файл" />
+
+        <ImageButton
+            android:id="@+id/camera_button"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:src="@android:drawable/ic_menu_camera"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Камера" />
+
         <EditText
             android:id="@+id/message_edit_text"
             android:layout_width="0dp"
@@ -92,11 +108,13 @@
             android:layout_weight="1"
             android:hint="Введите сообщение..." />
 
-        <Button
+        <ImageButton
             android:id="@+id/send_button"
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="Отпр" />
+            android:src="@android:drawable/ic_menu_send"
+            android:background="?attr/selectableItemBackgroundBorderless"
+            android:contentDescription="Отправить" />
 
     </LinearLayout>
 
