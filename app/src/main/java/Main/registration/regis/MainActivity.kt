@@ -1,6 +1,8 @@
 package Main.registration.regis
 
 import Main.registration.Data.Users
+import Main.registration.User.SessionManager
+import Main.registration.massages.ChatRepository
 import Main.registration.windows.ChatsActivity
 import android.content.Intent
 import android.os.Bundle
@@ -49,6 +51,8 @@ class MainActivity : AppCompatActivity() {
             val enteredPassword = passwordEditText.text.toString()
 
             if (savedUser.email == enteredEmail && savedUser.password == enteredPassword) {
+                SessionManager.currentUser = savedUser // Assuming Users object has email property
+                ChatRepository.load(this)
                 Toast.makeText(this, "Добро пожаловать", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, ChatsActivity::class.java)
                 startActivity(intent)

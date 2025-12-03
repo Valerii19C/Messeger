@@ -2,6 +2,8 @@ package Main.registration.Chats
 
 import Main.registration.bots.Bot
 import Main.registration.bots.ChatBotSystem
+import Main.registration.massages.ChatMessage
+import Main.registration.massages.ChatRepository
 import android.os.Bundle
 import android.view.Gravity
 import android.widget.Button
@@ -25,13 +27,13 @@ class InChats : AppCompatActivity() {
     private lateinit var backButton: ImageButton
     private lateinit var botNameTextView: TextView
     private lateinit var messagesScrollView: ScrollView
-    private var selectedBot: Bot? = null // Make it nullable
+    private var selectedBot: Bot? = null
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.in_chats_layout)
         hideSystemUI()
-        // 1. Находим все View по ID
+
         messagesContainer = findViewById(R.id.messages_container)
         messageEditText = findViewById(R.id.message_edit_text)
         sendButton = findViewById(R.id.send_button)
@@ -39,57 +41,55 @@ class InChats : AppCompatActivity() {
         botNameTextView = findViewById(R.id.bot_name_text_view)
         messagesScrollView = findViewById(R.id.messages_scroll_view)
 
-        // 2. Получаем имя бота и находим объект Bot
         val botName = intent.getStringExtra("chat_name")
         if (botName != null) {
             selectedBot = ChatBotSystem.allBots.find { it.name == botName }
         }
 
-        // 3. Проверяем, найден ли бот
         if (selectedBot == null) {
-            // Если бот не найден или имя не передано, показываем ошибку и блокируем чат
             botNameTextView.text = "Бот не найден"
             Toast.makeText(this, "Ошибка: чат с ботом не может быть открыт.", Toast.LENGTH_LONG).show()
             sendButton.isEnabled = false
             messageEditText.isEnabled = false
         } else {
             botNameTextView.text = selectedBot?.name
+            loadChatHistory()
         }
 
-
-        // 4. Настраиваем кнопку "назад"
         backButton.setOnClickListener {
             finish()
         }
 
-        // 5. Настраиваем кнопку отправки сообщения
         sendButton.setOnClickListener {
             val messageText = messageEditText.text.toString()
             if (messageText.isNotBlank()) {
                 selectedBot?.let { bot ->
-                    // Добавляем сообщение пользователя
-                    addMessage(messageText, true)
+                    val userMessage = ChatMessage(messageText, true)
+                    addMessageToUi(userMessage)
+                    ChatRepository.addMessage(this, bot.name, userMessage)
                     messageEditText.text.clear()
 
-                    // Получаем и добавляем ответ бота
-                    val botResponse = ChatBotSystem.getResponse(bot, messageText)
-                    addMessage(botResponse, false)
+                    val botResponseText = ChatBotSystem.getResponse(bot, messageText)
+                    val botMessage = ChatMessage(botResponseText, false)
+                    addMessageToUi(botMessage)
+                    ChatRepository.addMessage(this, bot.name, botMessage)
 
-                    // Прокручиваем ScrollView вниз
                     messagesScrollView.post { messagesScrollView.fullScroll(ScrollView.FOCUS_DOWN) }
                 }
             }
         }
     }
-    private fun hideSystemUI(){
+
+    private fun hideSystemUI() {
         WindowCompat.setDecorFitsSystemWindows(window, false)
         val insetsController = WindowCompat.getInsetsController(window, window.decorView)
         insetsController.hide(WindowInsetsCompat.Type.systemBars())
         insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
     }
-    private fun addMessage(message: String, isUserMessage: Boolean) {
+
+    private fun addMessageToUi(message: ChatMessage) {
         val textView = TextView(this).apply {
-            text = message
+            text = message.text
             textSize = 16f
             setPadding(16, 8, 16, 8)
 
@@ -97,20 +97,26 @@ class InChats : AppCompatActivity() {
                 LinearLayout.LayoutParams.WRAP_CONTENT,
                 LinearLayout.LayoutParams.WRAP_CONTENT
             ).apply {
-                gravity = if (isUserMessage) Gravity.END else Gravity.START
+                gravity = if (message.isSentByUser) Gravity.END else Gravity.START
                 topMargin = 8
             }
 
             this.layoutParams = layoutParams
-
-            // Устанавливаем фон для сообщения
-            background = if (isUserMessage) {
+            background = if (message.isSentByUser) {
                 ContextCompat.getDrawable(this@InChats, R.drawable.user_message_background)
             } else {
                 ContextCompat.getDrawable(this@InChats, R.drawable.bot_message_background)
             }
         }
-
         messagesContainer.addView(textView)
+    }
+
+    private fun loadChatHistory() {
+        selectedBot?.let { bot ->
+            val chatSession = ChatRepository.getOrCreateChatSession(this, bot.name)
+            for (message in chatSession.messages) {
+                addMessageToUi(message)
+            }
+        }
     }
 }
