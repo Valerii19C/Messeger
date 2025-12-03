@@ -43,6 +43,7 @@ class InChats : AppCompatActivity() {
     private lateinit var attachFileButton: ImageButton
     private lateinit var cameraButton: ImageButton
     private var selectedBot: Bot? = null
+    private var tempImageUri: Uri? = null
 
     private val requestFilePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
@@ -78,7 +79,7 @@ class InChats : AppCompatActivity() {
             }
         }
 
-    private val pickImageLauncher =
+    private val pickGalleryImageLauncher =
         registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
             if (result.resultCode == Activity.RESULT_OK) {
                 val data: Intent? = result.data
@@ -94,6 +95,28 @@ class InChats : AppCompatActivity() {
             }
         }
 
+    private val requestCameraPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                openCamera()
+            } else {
+                Toast.makeText(this, "Permission denied to use camera", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    private val takePictureLauncher =
+        registerForActivityResult(ActivityResultContracts.TakePicture()) { success ->
+            if (success) {
+                tempImageUri?.let { uri ->
+                    val newUri = PhotoFile.saveFileToInternalStorage(this, uri)
+                    val message = ChatMessage(imageUri = newUri.toString(), isSentByUser = true)
+                    addMessageToUi(message)
+                    selectedBot?.let {
+                        ChatRepository.addMessage(this, it.name, message)
+                    }
+                }
+            }
+        }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -152,7 +175,27 @@ class InChats : AppCompatActivity() {
         }
 
         cameraButton.setOnClickListener {
-            Toast.makeText(this, "Камера", Toast.LENGTH_SHORT).show()
+            checkCameraPermissionAndOpenCamera()
+        }
+    }
+
+    private fun checkCameraPermissionAndOpenCamera() {
+        when {
+            ContextCompat.checkSelfPermission(
+                this,
+                Manifest.permission.CAMERA
+            ) == PackageManager.PERMISSION_GRANTED -> {
+                openCamera()
+            }
+            else -> {
+                requestCameraPermissionLauncher.launch(Manifest.permission.CAMERA)
+            }
+        }
+    }
+    private fun openCamera() {
+        Kamera.getTmpFileUri(this).let { uri ->
+            tempImageUri = uri
+            takePictureLauncher.launch(uri)
         }
     }
 
@@ -211,7 +254,7 @@ class InChats : AppCompatActivity() {
 
     private fun openGallery() {
         val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
-        pickImageLauncher.launch(intent)
+        pickGalleryImageLauncher.launch(intent)
     }
 
     private fun hideSystemUI() {
