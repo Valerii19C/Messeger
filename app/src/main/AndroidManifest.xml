@@ -10,7 +10,7 @@
         android:label="@string/app_name"
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
-        android:theme="@style/Theme.Messenger">
+        android:theme="@style/Base.Theme.Messenger">
         <activity
             android:name="Main.registration.regis.MainActivity"
             android:exported="true">
@@ -28,8 +28,8 @@
             android:exported="true"/>
         <activity android:name="Main.registration.User.Profile"
             android:exported="true"/>
-        <activity android:name="Main.registration.windows.InChats"
-            android:exported="true"/>
+        <activity android:name="Main.registration.Chats.InChats"
+            android:exported="true" />
         <activity android:name="Main.registration.windows.BotListActivity"
             android:exported="true"/>
     </application>

@@ -4,8 +4,7 @@
     xmlns:tools="http://schemas.android.com/tools"
     android:id="@+id/main"
     android:layout_width="match_parent"
-    android:layout_height="match_parent"
-    tools:context=".windows.InChats">
+    android:layout_height="match_parent">
 
     <!-- Верхняя панель (Header) -->
     <com.google.android.material.appbar.AppBarLayout
@@ -54,17 +53,25 @@
         </androidx.appcompat.widget.Toolbar>
     </com.google.android.material.appbar.AppBarLayout>
 
-    <!-- Список сообщений (вместо ScrollView) -->
-    <androidx.recyclerview.widget.RecyclerView
-        android:id="@+id/messages_recycler_view"
+    <!-- Список сообщений -->
+    <ScrollView
+        android:id="@+id/messages_scroll_view"
         android:layout_width="0dp"
         android:layout_height="0dp"
-        app:layoutManager="androidx.recyclerview.widget.LinearLayoutManager"
         app:layout_constraintTop_toBottomOf="@+id/app_bar_layout"
         app:layout_constraintBottom_toTopOf="@+id/message_input_layout"
         app:layout_constraintStart_toStartOf="parent"
-        app:layout_constraintEnd_toEndOf="parent"
-        tools:listitem="@layout/message_item_sent" />
+        app:layout_constraintEnd_toEndOf="parent">
+
+        <LinearLayout
+            android:id="@+id/messages_container"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical"
+            android:padding="8dp">
+            <!-- Сообщения будут добавляться сюда динамически -->
+        </LinearLayout>
+    </ScrollView>
 
     <!-- Поле ввода сообщения внизу -->
     <LinearLayout

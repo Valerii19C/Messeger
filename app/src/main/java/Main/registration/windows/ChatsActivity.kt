@@ -13,6 +13,8 @@ import com.example.messenger.R
 import com.google.android.material.floatingactionbutton.FloatingActionButton
 
 class ChatsActivity : AppCompatActivity() {
+    private var selectedBotName: String? = null
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.main)
@@ -33,11 +35,10 @@ class ChatsActivity : AppCompatActivity() {
         val chatUsername = chatsView.findViewById<TextView>(R.id.chat_username)
 
         // Получаем имя бота из Intent
-        val selectedBotName = intent.getStringExtra("selected_bot_name")
-        if (selectedBotName != null) {
-            chatUsername.text = selectedBotName
+        intent.getStringExtra("selected_bot_name")?.let {
+            selectedBotName = it
+            chatUsername.text = it
         }
-
         newsIcon.setOnClickListener {
             val intent = Intent(this, NewsActivity::class.java)
             startActivity(intent)
@@ -49,24 +50,28 @@ class ChatsActivity : AppCompatActivity() {
         }
 
         chatItem?.setOnClickListener {
-            val intent = Intent(this, InChats::class.java)
-            startActivity(intent)
-        }
+            selectedBotName?.let { botName ->
+                val intent = Intent(this, InChats::class.java)
+                intent.putExtra("selected_bot_name", botName)
+                startActivity(intent)
+            }
 
-        // Обработчик для кнопки "Добавить чат"
-        addChatButton?.setOnClickListener {
-            val intent = Intent(this, BotListActivity::class.java)
-            startActivity(intent)
+            // Обработчик для кнопки "Добавить чат"
+            addChatButton?.setOnClickListener {
+                val intent = Intent(this, BotListActivity::class.java)
+                startActivity(intent)
+            }
         }
     }
 
-    override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
-        super.onNewIntent(intent, caller)
-        setIntent(intent) // Обновляем intent
-        val selectedBotName = getIntent().getStringExtra("selected_bot_name")
-        if (selectedBotName != null) {
-            val chatUsername = findViewById<TextView>(R.id.chat_username)
-            chatUsername.text = selectedBotName
+        override fun onNewIntent(intent: Intent, caller: ComponentCaller) {
+            super.onNewIntent(intent, caller)
+            setIntent(intent) // Обновляем intent
+            getIntent()?.getStringExtra("selected_bot_name")?.let {
+                selectedBotName = it
+                val chatUsername = findViewById<TextView>(R.id.chat_username)
+                chatUsername.text = it
+            }
         }
+
     }
-}
