@@ -4,15 +4,25 @@ import Main.registration.bots.Bot
 import Main.registration.bots.ChatBotSystem
 import Main.registration.massages.ChatMessage
 import Main.registration.massages.ChatRepository
+import android.Manifest
+import android.app.Activity
 import android.app.AlertDialog
+import android.content.Intent
+import android.content.pm.PackageManager
+import android.graphics.BitmapFactory
+import android.net.Uri
+import android.os.Build
 import android.os.Bundle
+import android.provider.MediaStore
 import android.view.Gravity
 import android.widget.EditText
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.LinearLayout
 import android.widget.ScrollView
 import android.widget.TextView
 import android.widget.Toast
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
 import androidx.core.view.WindowCompat
@@ -30,6 +40,32 @@ class InChats : AppCompatActivity() {
     private lateinit var attachFileButton: ImageButton
     private lateinit var cameraButton: ImageButton
     private var selectedBot: Bot? = null
+
+    private val requestPermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                openGallery()
+            } else {
+                Toast.makeText(this, "Permission denied to access gallery", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    private val pickImageLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                val imageUri: Uri? = data?.data
+                imageUri?.let { uri ->
+                    val newUri = PhotoFile.saveImageToInternalStorage(this, uri)
+                    val message = ChatMessage(imageUri = newUri.toString(), isSentByUser = true)
+                    addMessageToUi(message)
+                    selectedBot?.let {
+                        ChatRepository.addMessage(this, it.name, message)
+                    }
+                }
+            }
+        }
+
 
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -68,13 +104,13 @@ class InChats : AppCompatActivity() {
             val messageText = messageEditText.text.toString()
             if (messageText.isNotBlank()) {
                 selectedBot?.let { bot ->
-                    val userMessage = ChatMessage(messageText, true)
+                    val userMessage = ChatMessage(text = messageText, isSentByUser = true)
                     addMessageToUi(userMessage)
                     ChatRepository.addMessage(this, bot.name, userMessage)
                     messageEditText.text.clear()
 
                     val botResponseText = ChatBotSystem.getResponse(bot, messageText)
-                    val botMessage = ChatMessage(botResponseText, false)
+                    val botMessage = ChatMessage(text = botResponseText, isSentByUser = false)
                     addMessageToUi(botMessage)
                     ChatRepository.addMessage(this, bot.name, botMessage)
 
@@ -99,10 +135,32 @@ class InChats : AppCompatActivity() {
             .setItems(options) { dialog, which ->
                 when (which) {
                     0 -> Toast.makeText(this, "Прикрепить файл", Toast.LENGTH_SHORT).show()
-                    1 -> Toast.makeText(this, "Отправить изображение", Toast.LENGTH_SHORT).show()
+                    1 -> checkPermissionAndOpenGallery()
                 }
             }
             .show()
+    }
+
+    private fun checkPermissionAndOpenGallery() {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        when {
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
+                openGallery()
+            }
+            else -> {
+                requestPermissionLauncher.launch(permission)
+            }
+        }
+    }
+
+    private fun openGallery() {
+        val intent = Intent(Intent.ACTION_PICK, MediaStore.Images.Media.EXTERNAL_CONTENT_URI)
+        pickImageLauncher.launch(intent)
     }
 
     private fun hideSystemUI() {
@@ -113,27 +171,51 @@ class InChats : AppCompatActivity() {
     }
 
     private fun addMessageToUi(message: ChatMessage) {
-        val textView = TextView(this).apply {
-            text = message.text
-            textSize = 16f
-            setPadding(16, 8, 16, 8)
+        if (message.imageUri != null) {
+            val imageView = ImageView(this).apply {
+                layoutParams = LinearLayout.LayoutParams(
+                    500, // width
+                    500 // height
+                ).apply {
+                    gravity = if (message.isSentByUser) Gravity.END else Gravity.START
+                    topMargin = 8
+                }
+                scaleType = ImageView.ScaleType.CENTER_CROP
+                val imageUri = Uri.parse(message.imageUri)
+                try {
+                    val inputStream = contentResolver.openInputStream(imageUri)
+                    val bitmap = BitmapFactory.decodeStream(inputStream)
+                    setImageBitmap(bitmap)
+                } catch (e: Exception) {
+                    // Optionally, show a placeholder for broken images
+                    setImageResource(R.drawable.ic_launcher_background) // Example placeholder
+                }
 
-            val layoutParams = LinearLayout.LayoutParams(
-                LinearLayout.LayoutParams.WRAP_CONTENT,
-                LinearLayout.LayoutParams.WRAP_CONTENT
-            ).apply {
-                gravity = if (message.isSentByUser) Gravity.END else Gravity.START
-                topMargin = 8
             }
+            messagesContainer.addView(imageView)
+        } else {
+            val textView = TextView(this).apply {
+                text = message.text
+                textSize = 16f
+                setPadding(16, 8, 16, 8)
 
-            this.layoutParams = layoutParams
-            background = if (message.isSentByUser) {
-                ContextCompat.getDrawable(this@InChats, R.drawable.user_message_background)
-            } else {
-                ContextCompat.getDrawable(this@InChats, R.drawable.bot_message_background)
+                val layoutParams = LinearLayout.LayoutParams(
+                    LinearLayout.LayoutParams.WRAP_CONTENT,
+                    LinearLayout.LayoutParams.WRAP_CONTENT
+                ).apply {
+                    gravity = if (message.isSentByUser) Gravity.END else Gravity.START
+                    topMargin = 8
+                }
+
+                this.layoutParams = layoutParams
+                background = if (message.isSentByUser) {
+                    ContextCompat.getDrawable(this@InChats, R.drawable.user_message_background)
+                } else {
+                    ContextCompat.getDrawable(this@InChats, R.drawable.bot_message_background)
+                }
             }
+            messagesContainer.addView(textView)
         }
-        messagesContainer.addView(textView)
     }
 
     private fun loadChatHistory() {

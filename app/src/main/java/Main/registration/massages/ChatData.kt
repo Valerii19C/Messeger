@@ -6,7 +6,8 @@ import com.google.gson.annotations.SerializedName
  * Модель для одного сообщения в чате.
  */
 data class ChatMessage(
-    @SerializedName("text") val text: String,
+    @SerializedName("text") val text: String? = null,
+    @SerializedName("image_uri") val imageUri: String? = null,
     @SerializedName("is_sent_by_user") val isSentByUser: Boolean // true, если от пользователя; false - от бота
 )
 
