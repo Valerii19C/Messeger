@@ -4,6 +4,7 @@ import Main.registration.Data.Users
 import android.os.Bundle
 import android.widget.Button
 import android.widget.ImageButton
+import android.widget.ImageView
 import android.widget.TextView
 import android.widget.Toast
 import androidx.appcompat.app.AlertDialog
@@ -13,6 +14,8 @@ import com.google.gson.Gson
 import java.io.File
 
 class Profile: AppCompatActivity() {
+    private lateinit var photoHandler: Photo
+
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         setContentView(R.layout.users)
@@ -21,6 +24,11 @@ class Profile: AppCompatActivity() {
         val aboutButton = findViewById<Button>(R.id.about_button)
         val usernameTextView = findViewById<TextView>(R.id.username)
         val emailTextView = findViewById<TextView>(R.id.email)
+        val profileImageView = findViewById<ImageView>(R.id.profile_image)
+
+        photoHandler = Photo(this, profileImageView)
+
+        profileImageView.setImageResource(R.drawable.ic_user)
 
         loadUserData(usernameTextView, emailTextView)
 
@@ -31,12 +39,29 @@ class Profile: AppCompatActivity() {
         aboutButton.setOnClickListener {
             val builder = AlertDialog.Builder(this)
             builder.setTitle("О приложении")
-            builder.setMessage("Разработчик: Синева Валерия")
+            builder.setMessage("Разработчик: ваше имя")
             builder.setPositiveButton("Назад") { dialog, _ ->
                 dialog.dismiss()
             }
             val dialog = builder.create()
             dialog.show()
+        }
+
+        profileImageView.setOnClickListener {
+            val options = arrayOf("Просмотреть фото", "Изменить фото")
+            AlertDialog.Builder(this)
+                .setTitle("Фото профиля")
+                .setItems(options) { dialog, which ->
+                    when (which) {
+                        0 -> {
+                            photoHandler.viewProfilePhoto()
+                        }
+                        1 -> {
+                            photoHandler.changeProfilePhoto()
+                        }
+                    }
+                }
+                .show()
         }
     }
 
