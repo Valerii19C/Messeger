@@ -1,7 +1,6 @@
 package Main.registration.regis
 
 import Main.registration.Data.Users
-import Main.registration.regis.MainActivity
 import android.content.Intent
 import android.os.Bundle
 import android.widget.Button
@@ -11,6 +10,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.messenger.R
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.io.File
 
 class EntranceActivity: AppCompatActivity(){
@@ -42,13 +42,25 @@ class EntranceActivity: AppCompatActivity(){
     }
     private fun saveUser(user: Users) {
         val gson = Gson()
-        val userJson = gson.toJson(user)
+        val file = File(filesDir, "users.json")
 
-        val file = File(filesDir, "user.json")
-        file.writeText(userJson)
+        val users: MutableList<Users> = if (file.exists()) {
+            val json = file.readText()
+            gson.fromJson(json, object : TypeToken<MutableList<Users>>() {}.type)
+        } else {
+            mutableListOf()
+        }
 
-        val intent = Intent(this, MainActivity::class.java)
-        startActivity(intent)
-        finish()
+        if (users.any { it.email == user.email }) {
+            Toast.makeText(this, "Пользователь с такой почтой уже существует", Toast.LENGTH_SHORT).show()
+        } else {
+            users.add(user)
+            val updatedJson = gson.toJson(users)
+            file.writeText(updatedJson)
+
+            val intent = Intent(this, MainActivity::class.java)
+            startActivity(intent)
+            finish()
+        }
     }
 }

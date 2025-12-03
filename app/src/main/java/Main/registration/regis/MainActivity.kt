@@ -13,6 +13,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.appcompat.app.AppCompatActivity
 import com.example.messenger.R
 import com.google.gson.Gson
+import com.google.gson.reflect.TypeToken
 import java.io.File
 
 class MainActivity : AppCompatActivity() {
@@ -41,17 +42,19 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun handleEntranceButtonClick() {
-        val file = File(filesDir, "user.json")
+        val file = File(filesDir, "users.json")
         if (file.exists()) {
-            val userJson = file.readText()
+            val json = file.readText()
             val gson = Gson()
-            val savedUser = gson.fromJson(userJson, Users::class.java)
+            val users: List<Users> = gson.fromJson(json, object : TypeToken<List<Users>>() {}.type)
 
             val enteredEmail = emailEditText.text.toString()
             val enteredPassword = passwordEditText.text.toString()
 
-            if (savedUser.email == enteredEmail && savedUser.password == enteredPassword) {
-                SessionManager.currentUser = savedUser // Assuming Users object has email property
+            val user = users.find { it.email == enteredEmail && it.password == enteredPassword }
+
+            if (user != null) {
+                SessionManager.currentUser = user
                 ChatRepository.load(this)
                 Toast.makeText(this, "Добро пожаловать", Toast.LENGTH_SHORT).show()
                 val intent = Intent(this, ChatsActivity::class.java)

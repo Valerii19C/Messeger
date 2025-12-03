@@ -39,7 +39,7 @@ class Profile: AppCompatActivity() {
         aboutButton.setOnClickListener {
             val builder = AlertDialog.Builder(this)
             builder.setTitle("О приложении")
-            builder.setMessage("Разработчик: ваше имя")
+            builder.setMessage("Разработчик: Синева Валерия")
             builder.setPositiveButton("Назад") { dialog, _ ->
                 dialog.dismiss()
             }
