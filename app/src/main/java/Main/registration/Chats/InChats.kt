@@ -15,6 +15,7 @@ import android.os.Build
 import android.os.Bundle
 import android.provider.MediaStore
 import android.view.Gravity
+import android.webkit.MimeTypeMap
 import android.widget.EditText
 import android.widget.ImageButton
 import android.widget.ImageView
@@ -25,10 +26,12 @@ import android.widget.Toast
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.appcompat.app.AppCompatActivity
 import androidx.core.content.ContextCompat
+import androidx.core.content.FileProvider
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 import com.example.messenger.R
+import java.io.File
 
 class InChats : AppCompatActivity() {
     private lateinit var messagesContainer: LinearLayout
@@ -41,7 +44,32 @@ class InChats : AppCompatActivity() {
     private lateinit var cameraButton: ImageButton
     private var selectedBot: Bot? = null
 
-    private val requestPermissionLauncher =
+    private val requestFilePermissionLauncher =
+        registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
+            if (isGranted) {
+                openFileManager()
+            } else {
+                Toast.makeText(this, "Permission denied to access files", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+    private val pickFileLauncher =
+        registerForActivityResult(ActivityResultContracts.StartActivityForResult()) { result ->
+            if (result.resultCode == Activity.RESULT_OK) {
+                val data: Intent? = result.data
+                val fileUri: Uri? = data?.data
+                fileUri?.let { uri ->
+                    val newUri = PhotoFile.saveFileToInternalStorage(this, uri)
+                    val message = ChatMessage(fileUri = newUri.toString(), isSentByUser = true)
+                    addMessageToUi(message)
+                    selectedBot?.let {
+                        ChatRepository.addMessage(this, it.name, message)
+                    }
+                }
+            }
+        }
+
+    private val requestImagePermissionLauncher =
         registerForActivityResult(ActivityResultContracts.RequestPermission()) { isGranted: Boolean ->
             if (isGranted) {
                 openGallery()
@@ -56,7 +84,7 @@ class InChats : AppCompatActivity() {
                 val data: Intent? = result.data
                 val imageUri: Uri? = data?.data
                 imageUri?.let { uri ->
-                    val newUri = PhotoFile.saveImageToInternalStorage(this, uri)
+                    val newUri = PhotoFile.saveFileToInternalStorage(this, uri)
                     val message = ChatMessage(imageUri = newUri.toString(), isSentByUser = true)
                     addMessageToUi(message)
                     selectedBot?.let {
@@ -134,11 +162,34 @@ class InChats : AppCompatActivity() {
             .setTitle("Выберите действие")
             .setItems(options) { dialog, which ->
                 when (which) {
-                    0 -> Toast.makeText(this, "Прикрепить файл", Toast.LENGTH_SHORT).show()
+                    0 -> checkFilePermissionAndOpenFilePicker()
                     1 -> checkPermissionAndOpenGallery()
                 }
             }
             .show()
+    }
+
+    private fun checkFilePermissionAndOpenFilePicker() {
+        val permission = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            Manifest.permission.READ_MEDIA_IMAGES // Or other specific media types
+        } else {
+            Manifest.permission.READ_EXTERNAL_STORAGE
+        }
+
+        when {
+            ContextCompat.checkSelfPermission(this, permission) == PackageManager.PERMISSION_GRANTED -> {
+                openFileManager()
+            }
+            else -> {
+                requestFilePermissionLauncher.launch(permission)
+            }
+        }
+    }
+
+    private fun openFileManager() {
+        val intent = Intent(Intent.ACTION_GET_CONTENT)
+        intent.type = "*/*"
+        pickFileLauncher.launch(intent)
     }
 
     private fun checkPermissionAndOpenGallery() {
@@ -153,7 +204,7 @@ class InChats : AppCompatActivity() {
                 openGallery()
             }
             else -> {
-                requestPermissionLauncher.launch(permission)
+                requestImagePermissionLauncher.launch(permission)
             }
         }
     }
@@ -187,12 +238,36 @@ class InChats : AppCompatActivity() {
                     val bitmap = BitmapFactory.decodeStream(inputStream)
                     setImageBitmap(bitmap)
                 } catch (e: Exception) {
-                    // Optionally, show a placeholder for broken images
                     setImageResource(R.drawable.ic_launcher_background) // Example placeholder
                 }
 
             }
             messagesContainer.addView(imageView)
+        } else if (message.fileUri != null) {
+            val textView = TextView(this).apply {
+                text = "File: ${ChatFileUtils.getFileName(this@InChats, Uri.parse(message.fileUri))}"
+                textSize = 16f
+                setPadding(16, 8, 16, 8)
+                // Add icon and click listener to open the file
+                setOnClickListener {
+                    try {
+                        val file = File(Uri.parse(message.fileUri).path!!)
+                        val fileUri = FileProvider.getUriForFile(this@InChats, "${applicationContext.packageName}.provider", file)
+                        val openIntent = Intent(Intent.ACTION_VIEW)
+                        openIntent.data = fileUri
+                        openIntent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+
+                        val mimeType = contentResolver.getType(fileUri)
+                        openIntent.setDataAndType(fileUri, mimeType)
+
+                        startActivity(openIntent)
+                    } catch (e: Exception) {
+                        Toast.makeText(this@InChats, "Could not open file: ${e.message}", Toast.LENGTH_SHORT).show()
+                    }
+                }
+            }
+            messagesContainer.addView(textView)
+
         } else {
             val textView = TextView(this).apply {
                 text = message.text
