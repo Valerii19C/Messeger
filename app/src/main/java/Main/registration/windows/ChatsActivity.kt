@@ -51,7 +51,6 @@ class ChatsActivity : AppCompatActivity() {
     private fun setupNavigation() {
         val userIcon = findViewById<ImageView>(R.id.user)
         val newsIcon = findViewById<ImageView>(R.id.news)
-        val addChatButton = findViewById<FloatingActionButton>(R.id.add_chat_button)
 
         userIcon.setOnClickListener {
             startActivity(Intent(this, Profile::class.java))

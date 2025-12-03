@@ -40,7 +40,7 @@ class InChats : AppCompatActivity() {
         messagesScrollView = findViewById(R.id.messages_scroll_view)
 
         // 2. Получаем имя бота и находим объект Bot
-        val botName = intent.getStringExtra("selected_bot_name")
+        val botName = intent.getStringExtra("chat_name")
         if (botName != null) {
             selectedBot = ChatBotSystem.allBots.find { it.name == botName }
         }
